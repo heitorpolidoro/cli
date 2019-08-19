@@ -1,7 +1,7 @@
 import time
 
 from colors import *
-from gitlab import Job
+from gitlab.job import Job
 from loading import Loading
 from parser import Command, CommandArgument
 from utils import *
