@@ -21,7 +21,7 @@ class Pipeline(object):
             if branch is None:
                 self.branch = run_and_return_output('git rev-parse --abbrev-ref HEAD')
 
-            last_commit_id = os.popen('git log --pretty=%%H -1 %s' % self.branch).read().strip()
+            last_commit_id = run_and_return_output('git log --pretty=%%H -1 %s' % self.branch)
             content = Requests.get_content(
                 'https://gitlab.com/api/v4/projects/${GITLAB_PROJECT}/pipelines/?sha=' + last_commit_id,
                 headers={'PRIVATE-TOKEN': '${PRIVATE_TOKEN}'}
