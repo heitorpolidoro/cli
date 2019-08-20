@@ -13,7 +13,7 @@ if sys.version_info[0] < 3:
     raise Exception('Must be using Python 3')
 
 ENV_FILE = os.path.expanduser('~/.cli/%s.env' % os.getcwd().replace('/', '-'))
-CONFIG_FILE = os.path.expanduser('~/.cli/config-beta')
+CONFIG_FILE = os.path.expanduser('~/.cli/config')
 
 
 class Parser(ArgumentParser):
