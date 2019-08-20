@@ -13,6 +13,7 @@ class UtilsStdout(object):
     Print wrapper to clear to end of line on every print and count the number of printed lines to return and allow
     monitoring prints
     """
+
     def __init__(self):
         self.stdout = sys.stdout
         self.lines = 0
@@ -47,7 +48,6 @@ class UtilsStdout(object):
 
 
 sys.stdout = UtilsStdout()
-
 
 Clear_to_end_of_line = os.popen("tput el").read()
 
@@ -137,9 +137,9 @@ def get_env_var(name, default=None):
     resp = os.getenv(name, default)
     if resp is None:
         cli_name = os.getenv('CLI_NAME')
-        raise EnvironmentError('There is no environment variable called "%s"!\n'
-                               'Export the variable or use "%s --set-local-variable=%s=VALUE" '
-                               'to save the value locally.' % (cli_name, name, name))
+        exit('There is no environment variable called "%s"!\n'
+             'Export the variable or use "%s --set-local-variable=%s=VALUE" '
+             'to save the value locally.' % (cli_name, name, name))
     return resp
 
 

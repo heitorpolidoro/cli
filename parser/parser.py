@@ -1,7 +1,5 @@
 import inspect
 import json
-import os
-import sys
 from argparse import ArgumentParser
 
 from loading import Loading
@@ -15,7 +13,7 @@ if sys.version_info[0] < 3:
     raise Exception('Must be using Python 3')
 
 ENV_FILE = os.path.expanduser('~/.cli/%s.env' % os.getcwd().replace('/', '-'))
-CONFIG_FILE = os.path.expanduser('~/.cli/config')
+CONFIG_FILE = os.path.expanduser('~/.cli/config-beta')
 
 
 class Parser(ArgumentParser):
@@ -196,7 +194,7 @@ class Parser(ArgumentParser):
 
         os.chdir(get_env_var('CLI_PATH'))
         if verbose:
-            print('Updating PACKAGE')
+            print('Updating CLI')
         run('git stash')
         run('git pull')
         run('git stash pop')
