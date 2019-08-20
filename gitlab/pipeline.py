@@ -6,6 +6,10 @@ from loading import Loading
 from parser import Command, CommandArgument
 from utils import *
 
+# TODO
+# - notify quando job falhar
+# - 1 retry automático
+
 
 class Pipeline(object):
     help = 'GitLab pipeline commands'

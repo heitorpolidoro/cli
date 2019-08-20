@@ -34,14 +34,6 @@ class Parser(ArgumentParser):
     def __init__(self, *args, version=__version__, **kwargs):
         kwargs.setdefault('prog', get_env_var('CLI_NAME'))
         super().__init__(*args, **kwargs)
-        self.add_argument('--set-local-variable', action='store', type=Parser.set_local_variable,
-                          metavar='NAME=VALUE', help='set a local variable value')
-        self.add_argument('--install', action='store', type=Parser.install,
-                          metavar='CLI', help='install a CLI')
-        self.add_argument('--uninstall', action='store', type=Parser.uninstall,
-                          metavar='CLI', help='uninstall a CLI')
-        self.add_argument('--update', action='store', nargs='?', type=Parser.update, const='all',
-                          metavar='CLI', help='update the CLI and all installed packages')
 
         if version:
             self.add_argument('-v', '--version', action='version', version='%(prog)s ' + version)
@@ -153,55 +145,49 @@ class Parser(ArgumentParser):
             exit()
 
     @staticmethod
-    def install(cli, validate=True, verbose=True, exit_on_complete=True):
+    def install(package, validate=True, verbose=True, exit_on_complete=True):
         installed_packages = json.loads(get_env_var('INSTALLED_PACKAGES', '[]'))
-        if validate and cli in installed_packages:
-            exit('Package %s already installed' % cli)
+        if validate and package in installed_packages:
+            exit('Package %s already installed' % package)
 
         Loading.start()
         if verbose:
-            print('Installing %s...' % cli)
+            print('Installing %s...' % package)
 
-        os.chdir(get_env_var('CLI_PATH'))
-        commit = run_and_return_output('git ls-remote origin %s' % cli).split()[0]
-        run('git stash')
-        run('git merge %s' % commit)
-        run('git stash pop')
-        if cli not in installed_packages:
-            installed_packages.append(cli)
+        if package not in installed_packages:
+            installed_packages.append(package)
         Parser.set_local_variable('INSTALLED_PACKAGES=%s' % json.dumps(installed_packages),
                                   file=CONFIG_FILE, verbose=False, exit_on_complete=False)
 
         if verbose:
             return_printed_lines()
-            print('%s installed successfully' % cli)
+            print('%s installed successfully' % package)
 
         if exit_on_complete:
             exit()
 
     @staticmethod
-    def uninstall(cli):
+    def uninstall(package):
         installed_packages = json.loads(get_env_var('INSTALLED_PACKAGES', '[]'))
-        if cli not in installed_packages:
-            exit('Package %s is not installed' % cli)
+        if package not in installed_packages:
+            exit('Package %s is not installed' % package)
 
         Loading.start()
-        print('Uninstalling %s...' % cli)
+        print('Uninstalling %s...' % package)
 
-        installed_packages.remove(cli)
+        installed_packages.remove(package)
         Parser.set_local_variable('INSTALLED_PACKAGES=%s' % json.dumps(installed_packages),
                                   file=CONFIG_FILE, verbose=False, exit_on_complete=False)
         try:
             Parser.update(verbose=False, exit_on_complete=False)
         except Exception:
-            installed_packages.append(cli)
+            installed_packages.append(package)
             Parser.set_local_variable('INSTALLED_PACKAGES=%s' % json.dumps(installed_packages),
                                       file=CONFIG_FILE, verbose=False, exit_on_complete=False)
             raise
 
-        os.system('rm %s -r' % cli)
         return_printed_lines()
-        print('%s uninstalled successfully' % cli)
+        print('%s uninstalled successfully' % package)
         exit()
 
     @staticmethod
@@ -210,10 +196,8 @@ class Parser(ArgumentParser):
 
         os.chdir(get_env_var('CLI_PATH'))
         if verbose:
-            print('Updating CLI')
+            print('Updating PACKAGE')
         run('git stash')
-        stable_commit = run_and_return_output('git ls-remote origin stable').split()[0]
-        run('git reset --hard %s' % stable_commit)
         run('git pull')
         run('git stash pop')
 
@@ -222,16 +206,16 @@ class Parser(ArgumentParser):
 
         if verbose:
             return_printed_lines()
-            print('CLI updated successfully')
+            print('PACKAGE updated successfully')
 
         if exit_on_complete:
             exit()
 
-    def add_clis(self):
+    def add_packages(self):
         for package in json.loads(get_env_var('INSTALLED_PACKAGES', '[]')):
-            cli = __import__(package)
-            for name in dir(cli):
-                obj = getattr(cli, name)
+            package = __import__(package)
+            for name in dir(package):
+                obj = getattr(package, name)
                 if isinstance(obj, type):
                     self.add_argument(obj)
 

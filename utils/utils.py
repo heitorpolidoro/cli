@@ -136,9 +136,10 @@ def get_env_var(name, default=None):
     """ Get an environment variable, if there is none raise an exception """
     resp = os.getenv(name, default)
     if resp is None:
+        cli_name = os.getenv('CLI_NAME')
         raise EnvironmentError('There is no environment variable called "%s"!\n'
-                               'Export the variable or use "qc --set-local-variable=%s=VALUE" '
-                               'to save the value locally.' % (name, name))
+                               'Export the variable or use "%s --set-local-variable=%s=VALUE" '
+                               'to save the value locally.' % (cli_name, name, name))
     return resp
 
 
@@ -180,7 +181,7 @@ def return_printed_lines(clear=True):
     sys.stdout.return_printed_lines(clear)
 
 
-def notify(title, message='', expire_time=1, icon=''):
+def notify(title, message='', expire_time=1000, icon=''):
     os.system('notify-send --expire-time=%d --icon=%s "%s" "%s"' % (expire_time, icon, title, message))
 
 
