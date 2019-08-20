@@ -44,6 +44,12 @@ class Pipeline(object):
     @staticmethod
     def validate_env_vars():
         # Assuming that the project has the same name in GitHub and GitLab
+        validate_env_var('PRIVATE_TOKENs',
+                         message='The value is in Last Pass in%s Gitlab QB CLI tokens%s notes.' % (Bold, Color_Off))
+
+        validate_env_var('PIPELINE_TRIGGER_TOKEN',
+                         message='The value is in Last Pass in%s Gitlab QB CLI tokens%s notes.' % (Bold, Color_Off))
+
         validate_env_var(
             'GITLAB_PROJECT',
             default=lambda: get_gitlab_project_id(
@@ -51,12 +57,6 @@ class Pipeline(object):
             ),
             message='The value is the GitLab project ID.'
         )
-
-        validate_env_var('PRIVATE_TOKEN',
-                         message='The value is in Last Pass in%s Gitlab QB CLI tokens%s notes.' % (Bold, Color_Off))
-
-        validate_env_var('PIPELINE_TRIGGER_TOKEN',
-                         message='The value is in Last Pass in%s Gitlab QB CLI tokens%s notes.' % (Bold, Color_Off))
 
     def update(self):
         content = Requests.get_content(
