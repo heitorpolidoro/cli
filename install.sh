@@ -23,7 +23,7 @@ if ! ${python_cmd} -m pip freeze | grep -q requests= ; then
   ${python_cmd} -m pip install requests
 fi
 
-echo 'Qual nome deseja para o CLI':
+echo -e '\nQual nome deseja para o CLI':
 read -r NAME
 
 if [[ -z "${NAME}" ]]; then
@@ -37,10 +37,11 @@ chmod +x "${NAME}"
 
 if ! grep -q "${PWD}" ~/.bashrc; then
   echo "export PATH=\"${PWD}:\$PATH\"" >> ~/.bashrc
-  export PATH=\"${PWD}:\$PATH\"
 fi
 
-mkdir ~/.cli > /dev/null 2>&1
+mkdir ~/.cli
 
 echo "CLI_NAME=${NAME}" > ~/.cli/config
 echo "CLI_PATH=${PWD}" >> ~/.cli/config
+
+echo -e '\nRun "source ~/.bashrc" to update the PATH'
