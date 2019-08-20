@@ -18,5 +18,9 @@ fi
 
 mkdir ~/.cli > /dev/null 2>&1
 
+echo "CLI_NAME=${NAME}" > ~/.cli/config
+echo "CLI_PATH=${PWD}" >> ~/.cli/config
+
+
 source ~/.bashrc
 

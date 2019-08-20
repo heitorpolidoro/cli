@@ -12,6 +12,9 @@ class ColorStdout(object):
         self.stdout = sys.stdout
         self.text = []
 
+    def __getattr__(self, item):
+        return getattr(self.stdout, item)
+
     def write(self, text):
         # Skip lone single spaces
         if text == ' ':

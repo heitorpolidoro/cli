@@ -17,6 +17,9 @@ class UtilsStdout(object):
         self.stdout = sys.stdout
         self.lines = 0
 
+    def __getattr__(self, item):
+        return getattr(self.stdout, item)
+
     def write(self, text):
         print(text, end=Clear_to_end_of_line, file=self.stdout)
         # Count every '\n' (new line)
@@ -61,7 +64,11 @@ def run(command):
 
     resp = subprocess.Popen(command.split(), stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
     out, err = resp.communicate()
-    return resp.returncode, out.strip()
+    errorcode = resp.returncode
+    if errorcode:
+        exit(err)
+
+    return errorcode, out.strip()
 
 
 def run_and_return_output(command):
@@ -173,8 +180,8 @@ def return_printed_lines(clear=True):
     sys.stdout.return_printed_lines(clear)
 
 
-def notify(title, message=''):
-    os.system('notify-send "%s" "%s"' % (title, message))
+def notify(title, message='', expire_time=1, icon=''):
+    os.system('notify-send --expire-time=%d --icon=%s "%s" "%s"' % (expire_time, icon, title, message))
 
 
 def clear_to_end_of_screen():
@@ -227,5 +234,7 @@ def get_last_gitlab_commit(branch=None):
 def get_gitlab_project_id(project_name):
     content = Requests.get_content('https://gitlab.com/api/v4/projects?search=%s&simple=true' % project_name,
                                    headers={'PRIVATE-TOKEN': '${PRIVATE_TOKEN}'})
+    if isinstance(content, list):
+        exit('Project "%s" not found in GitLab' % project_name)
     if content:
         return content['id']

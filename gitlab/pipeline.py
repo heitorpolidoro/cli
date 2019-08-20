@@ -162,7 +162,7 @@ class Pipeline(object):
             pipeline.print_status()
             pipeline.print_jobs()
         else:
-            print('Checking if the commit is mirrored')
+            print(Bold, 'Checking if the commit is mirrored')
 
             reset_printed_lines()
             local_commit_id = get_last_local_commit(pipeline.branch)
@@ -198,11 +198,11 @@ class Pipeline(object):
             pipeline = Pipeline(branch=arguments.branch)  # Check if auto-triggered pipeline
             if not pipeline.id or arguments.force:
                 print('Starting pipeline for branch %s' % pipeline.branch)
-                notify('Pipeline %d' % pipeline.id, 'Started')
                 Requests.post('https://gitlab.com/api/v4/projects/${GITLAB_PROJECT}/trigger/pipeline',
                               files={'token': (None, '${PIPELINE_TRIGGER_TOKEN}'), 'ref': (None, pipeline.branch)})
                 time.sleep(5)  # Wait to triggered pipelines to run
                 pipeline = Pipeline(branch=arguments.branch)  # Update pipeline information
+            notify('Pipeline %s' % pipeline.branch, 'Started')
 
         if arguments.monitor:
             return_printed_lines()
@@ -230,12 +230,12 @@ class Pipeline(object):
         if pipeline.id is None:
             exit('There is no Pipeline for this commit in the branch: %s' % pipeline.branch)
 
-        print('Starting monitor')
+        print(Bold, 'Starting monitor')
         print(Cyan, pipeline.web_url)
         reset_printed_lines()
 
         if pipeline.status in ['running', 'pending']:
-            notify('Monitor pipeline %d' % pipeline.id, 'Started')
+            notify('Monitor pipeline %s' % pipeline.branch, 'Started')
 
         pipeline.update()
         Loading.stop()
@@ -252,4 +252,4 @@ class Pipeline(object):
 
         pipeline.print_status()
         pipeline.print_jobs()
-        notify('Pipeline %d Finished' % pipeline.id, pipeline.status)
+        notify('Pipeline %s Finished' % pipeline.branch, pipeline.status)
