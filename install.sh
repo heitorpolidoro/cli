@@ -12,7 +12,8 @@ if [[ -z "$(which python3.7)" ]]; then
     fi
 
     if [[ -z ${resp} ]] || [[ "${resp}" == "y" ]] || [[ "${resp}" == "Y" ]]; then
-      $SUDO apt-get install -y python3.7 python3-pip
+      $SUDO apt-get update
+      $SUDO apt-get install -y python3.7 python3-pip || exit 1
     else
       exit 1
     fi
@@ -20,7 +21,7 @@ if [[ -z "$(which python3.7)" ]]; then
 fi
 
 if ! ${python_cmd} -m pip freeze | grep -q requests= ; then
-  ${python_cmd} -m pip install requests
+  ${python_cmd} -m pip install requests || exit 1
 fi
 
 echo -e '\nQual nome deseja para o CLI':

@@ -179,7 +179,7 @@ class Parser(ArgumentParser):
                             create_alias = False
                             break
                 if create_alias:
-                    output = run_and_return_output('which %s' % cli_name)
+                    output = run_and_return_output('which %s' % cli_name, exit_if_error=False)
                     if output:
                         print('Cannot create the alias becouse there is a command "%s" in %s' % (cli_name, output))
                     else:
