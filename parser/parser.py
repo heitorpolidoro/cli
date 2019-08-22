@@ -115,6 +115,7 @@ class Parser(ArgumentParser):
 
     @staticmethod
     def set_local_variable(local_variable, file=ENV_FILE, verbose=True, exit_on_complete=True):
+        file = os.path.expanduser(file)
         if local_variable:
             if '=' not in local_variable or local_variable.endswith('='):
                 raise SyntaxError('--set-local-variable must be in the format NAME=VALUE')
@@ -143,13 +144,14 @@ class Parser(ArgumentParser):
             exit()
 
     @staticmethod
-    def install(package, validate=True, verbose=True, exit_on_complete=True):
+    def install(package, validate=True, verbose=True, exit_on_complete=True, _print_source_bashrc_info=True):
         installed_packages = json.loads(get_env_var('INSTALLED_PACKAGES', '[]'))
         if validate and package in installed_packages:
             exit('Package %s already installed' % package)
 
         Loading.start()
         if verbose:
+            reset_printed_lines()
             print('Installing %s...' % package)
 
         if package not in installed_packages:
@@ -157,9 +159,45 @@ class Parser(ArgumentParser):
         Parser.set_local_variable('INSTALLED_PACKAGES=%s' % json.dumps(installed_packages),
                                   file=CONFIG_FILE, verbose=False, exit_on_complete=False)
 
+        Loading.stop()
+        alias_created = []
+        for cli in Parser.get_clis(package):
+            cli_name = cli.__name__.lower()
+            alias = "alias %s=\'%s %s\'" % (cli_name, get_env_var('CLI_NAME'), cli_name)
+            print('Would you like to crate an alias "%s" for this CLI[Y/n]?' % alias)
+            resp = getch()
+            if resp in ['\n', 'y', 'Y']:
+                if os.path.exists(os.path.expanduser('~/.bash_aliases')):
+                    file = '~/.bash_aliases'
+                else:
+                    file = '~/.bashrc'
+
+                create_alias = True
+                with open(os.path.expanduser(file), 'r') as arq:
+                    for line in arq.readlines():
+                        if alias in line:
+                            create_alias = False
+                            break
+                if create_alias:
+                    output = run_and_return_output('which %s' % cli_name)
+                    if output:
+                        print('Cannot create the alias becouse there is a command "%s" in %s' % (cli_name, output))
+                    else:
+                        with open(os.path.expanduser(file), 'a') as arq:
+                            arq.write('\n' + alias)
+
+                        alias_created.append(alias)
+                else:
+                    print('already exists a alias named "pipeline" in %s.' % file)
+
         if verbose:
             return_printed_lines()
             print('%s installed successfully' % package)
+            if alias_created:
+                for alias in alias_created:
+                    print('Alias "%s" crated. ' % alias)
+                if _print_source_bashrc_info:
+                    print('Run "source ~/.bashrc" to update the aliases')
 
         if exit_on_complete:
             exit()
@@ -209,13 +247,34 @@ class Parser(ArgumentParser):
         if exit_on_complete:
             exit()
 
-    def add_packages(self):
-        for package in json.loads(get_env_var('INSTALLED_PACKAGES', '[]')):
-            package = __import__(package)
-            for name in dir(package):
-                obj = getattr(package, name)
+    @staticmethod
+    def get_clis(packages=None):
+        if packages is None:
+            packages = json.loads(get_env_var('INSTALLED_PACKAGES', '[]'))
+        elif not isinstance(packages, list):
+            packages = [packages]
+        clis = []
+        for cli in packages:
+            cli = __import__(cli)
+            for name in dir(cli):
+                obj = getattr(cli, name)
                 if isinstance(obj, type):
-                    self.add_argument(obj)
+                    clis.append(obj)
+
+        return clis
+
+    def add_packages(self):
+        for cli in Parser.get_clis():
+            self.add_argument(cli)
+
+    @staticmethod
+    def install_all_default_packages(package='all'):
+        default_packages = [p for p in ['gitlab'] if package == 'all' or p == package]
+        print('These are the default packages, which one you want to install')
+        packages = select_option(default_packages)
+        for p in packages:
+            Parser.install(p, _print_source_bashrc_info=False)
+        exit()
 
 
 Parser.load_local_environment_variables(CONFIG_FILE)

@@ -2,10 +2,17 @@ import atexit
 import os
 import re
 import sys
+import shlex
 
+from utils.getch import getch
 from requests import HTTPError
 
+from colors import Bold
 from requests_utils import Requests
+from utils.key import Key
+
+check_mark = '\u2713'
+cross_mark = '\u2715'
 
 
 class UtilsStdout(object):
@@ -13,6 +20,7 @@ class UtilsStdout(object):
     Print wrapper to clear to end of line on every print and count the number of printed lines to return and allow
     monitoring prints
     """
+
     def __init__(self):
         self.stdout = sys.stdout
         self.lines = 0
@@ -48,38 +56,39 @@ class UtilsStdout(object):
 
 sys.stdout = UtilsStdout()
 
-
 Clear_to_end_of_line = os.popen("tput el").read()
 
 
-def run(command):
+def run(command, exit_if_error=True):
     """
     Run a command line command
 
     :param command: Command to execute
+    :param exit_if_error: Exit the script if the command returns any error
 
     :return: return code, output
     """
     import subprocess
 
-    resp = subprocess.Popen(command.split(), stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
+    resp = subprocess.Popen(shlex.split(command), stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
     out, err = resp.communicate()
     errorcode = resp.returncode
-    if errorcode:
+    if errorcode and exit_if_error:
         exit(err)
 
     return errorcode, out.strip()
 
 
-def run_and_return_output(command):
+def run_and_return_output(command, exit_if_error=True):
     """
     Run a command line command and return only the output
 
     :param command: Command to execute
+    :param exit_if_error: Exit the script if the command returns any error
 
     :return: output
     """
-    return run(command)[1]
+    return run(command, exit_if_error=exit_if_error)[1]
 
 
 def template_safe_substitute(target, **kwargs):
@@ -239,3 +248,61 @@ def get_gitlab_project_id(project_name):
         exit('Project "%s" not found in GitLab' % project_name)
     if content:
         return content['id']
+
+
+def select_option(default_packages, options_all_and_none=True):
+    if options_all_and_none and len(default_packages) > 1:
+        options = ['all'] + default_packages + ['none']
+        current = ''
+    else:
+        options = default_packages
+        current = default_packages[0]
+    selected = set(options) - {'none'}
+    reset_printed_lines()
+    hide_cursor()
+    while True:
+        for opt in options:
+            if opt == current:
+                print(Bold, '>', end='')
+            if opt in selected:
+                print('  [x]', end='  ')
+            else:
+                print('  [ ]', end='  ')
+            print(opt)
+        resp = getch(translate_to_key=True)
+        return_printed_lines()
+        if resp == Key.ARROW_UP:
+            if not current:
+                current = options[0]
+            current = options[options.index(current) - 1]
+        elif resp == Key.ARROW_DOWN:
+            if not current:
+                current = options[-1]
+            current = options[(options.index(current) + 1) % len(options)]
+        elif resp == '+':
+            selected.add(current)
+        elif resp == '-':
+            selected -= {current, 'all'}
+        elif resp == ' ' and current:
+            if (current == 'all' and 'all' in selected) or \
+                    (current == 'none' and 'none' not in selected):
+                selected = {'none'}
+            elif (current == 'all' and 'all' not in selected) or \
+                    (current == 'none' and 'none' in selected):
+                selected = set(options) - {'none'}
+            else:
+                if current in selected:
+                    selected -= {current, 'all'}
+                else:
+                    selected.add(current)
+
+                if not selected - {'all'}:
+                    selected = {'none'}
+                else:
+                    selected -= {'none'}
+                    if selected == default_packages:
+                        selected.add('all')
+
+        elif resp == Key.ENTER:
+            break
+    return selected - {'all', 'none'}

@@ -44,4 +44,6 @@ mkdir ~/.cli
 echo "CLI_NAME=${NAME}" > ~/.cli/config
 echo "CLI_PATH=${PWD}" >> ~/.cli/config
 
+${python_cmd} "${PWD}"/cli.py --install_all_default_packages
+
 echo -e '\nRun "source ~/.bashrc" to update the PATH'

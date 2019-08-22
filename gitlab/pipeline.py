@@ -173,11 +173,11 @@ class Pipeline(object):
             print('Local:\t%s' % local_commit_id)
 
             github_commit_id = get_last_github_commit(pipeline.branch)
-            color, symbol = (Green, '\u2713') if local_commit_id == github_commit_id else (Red, '\u2715')
+            color, symbol = (Green, check_mark) if local_commit_id == github_commit_id else (Red, cross_mark)
             print(color, 'GitHub:\t%s\t%s' % (github_commit_id, symbol))
 
             gitlab_commit_id = get_last_gitlab_commit(pipeline.branch)
-            color, symbol = (Green, '\u2713') if local_commit_id == gitlab_commit_id else (Red, '\u2715')
+            color, symbol = (Green, check_mark) if local_commit_id == gitlab_commit_id else (Red, cross_mark)
             print(color, 'GitLab:\t%s\t%s' % (github_commit_id, symbol))
             while gitlab_commit_id is None \
                     or local_commit_id != gitlab_commit_id \
@@ -187,10 +187,10 @@ class Pipeline(object):
 
                 print('Local:\t%s' % local_commit_id)
 
-                color, symbol = (Green, '\u2713') if local_commit_id == github_commit_id else (Red, '\u2715')
+                color, symbol = (Green, check_mark) if local_commit_id == github_commit_id else (Red, cross_mark)
                 print(color, 'GitHub:\t%s\t%s' % (github_commit_id, symbol))
 
-                color, symbol = (Green, '\u2713') if local_commit_id == gitlab_commit_id else (Red, '\u2715')
+                color, symbol = (Green, check_mark) if local_commit_id == gitlab_commit_id else (Red, cross_mark)
                 print(color, 'GitLab:\t%s\t%s' % (github_commit_id, symbol))
 
                 time.sleep(0.05)
