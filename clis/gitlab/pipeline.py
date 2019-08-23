@@ -1,10 +1,11 @@
 import time
 
-from colors import *
-from gitlab.job import Job
-from loading import Loading
+from clis.gitlab.job import Job
+from helpers.loading import Loading
 from parser import Command, CommandArgument
-from utils import *
+from helpers.utils import *
+from helpers.colors import *
+
 
 # TODO
 # - notify quando job falhar

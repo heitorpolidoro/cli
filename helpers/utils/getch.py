@@ -1,7 +1,7 @@
 import os
 import sys
 
-from utils.key import Key
+from helpers.utils.key import Key
 
 
 class _Getch(object):  # pragma: no cover

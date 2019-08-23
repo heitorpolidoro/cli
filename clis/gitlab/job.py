@@ -1,7 +1,8 @@
+import re
 from datetime import datetime, timedelta
 
-from colors import *
-from utils import *
+from helpers.colors import *
+from helpers.utils import *
 
 
 class Job(object):

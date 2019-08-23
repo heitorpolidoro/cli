@@ -73,6 +73,6 @@ class Command(object):
             except KeyboardInterrupt:
                 pass
             except Exception:
-                from utils import return_printed_lines
+                from helpers.utils import return_printed_lines
                 atexit.unregister(return_printed_lines)
                 raise

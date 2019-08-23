@@ -16,7 +16,7 @@ class Requests(object):
     @staticmethod
     def post(url, *args, headers=None, files=None, **kwargs):
         import requests
-        from utils import template_safe_substitute
+        from helpers.utils import template_safe_substitute
 
         response = requests.post(template_safe_substitute(url, **kwargs),
                                  *template_safe_substitute(args, **kwargs),
@@ -29,7 +29,7 @@ class Requests(object):
     @staticmethod
     def get(url, *args, headers=None, **kwargs):
         import requests
-        from utils import template_safe_substitute
+        from helpers.utils import template_safe_substitute
 
         response = requests.get(template_safe_substitute(url, **kwargs),
                                 *template_safe_substitute(args, **kwargs),

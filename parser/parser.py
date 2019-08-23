@@ -1,10 +1,12 @@
 import inspect
 import json
+import os
+import sys
 from argparse import ArgumentParser
 
-from loading import Loading
+from helpers.loading import Loading
 from parser.command import Command
-from utils import *
+from helpers.utils import *
 
 __version__ = '0.0.1-beta'
 
@@ -255,7 +257,7 @@ class Parser(ArgumentParser):
             packages = [packages]
         clis = []
         for cli in packages:
-            cli = __import__(cli)
+            cli = __import__('clis.' + cli)
             for name in dir(cli):
                 obj = getattr(cli, name)
                 if isinstance(obj, type):

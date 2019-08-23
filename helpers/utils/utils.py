@@ -4,12 +4,12 @@ import re
 import sys
 import shlex
 
-from utils.getch import getch
+from helpers.utils.getch import getch
 from requests import HTTPError
 
-from colors import Bold
-from requests_utils import Requests
-from utils.key import Key
+from helpers.colors import Bold
+from helpers.requests_utils import Requests
+from helpers.utils.key import Key
 
 check_mark = '\u2713'
 cross_mark = '\u2715'
