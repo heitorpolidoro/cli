@@ -242,7 +242,7 @@ class Parser(ArgumentParser):
 
         if verbose:
             return_printed_lines()
-            print('PACKAGE updated successfully')
+            print('CLI updated successfully')
 
         if exit_on_complete:
             exit()

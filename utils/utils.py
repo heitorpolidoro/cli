@@ -245,6 +245,9 @@ def get_gitlab_project_id(project_name):
     content = Requests.get_content('https://gitlab.com/api/v4/projects?search=%s&simple=true' % project_name,
                                    headers={'PRIVATE-TOKEN': '${PRIVATE_TOKEN}'})
     if isinstance(content, list):
+        for p in content:
+            if p['name'] == project_name:
+                return p['id']
         exit('Project "%s" not found in GitLab' % project_name)
     if content:
         return content['id']
