@@ -74,23 +74,23 @@ class _Getch(object):  # pragma: no cover
     def modo_debug() -> str:
         """ Uses input to simulate getch """
         code = []  # type list[str]
-        resp = input().strip(' ')
+        resp = input()
         if resp:
             if len(resp) > 1 and resp.startswith('n') and (resp[1:].isdigit() or resp[1] == '-' and resp[2:].isdigit()):
                 code = [chr(int(resp[1:]))]
             elif resp.startswith('t'):
                 if resp in ['tAD']:  # Atalhos
-                    code = [chr(_c) for _c in Key.ARROW_DOWN.code]
+                    return Key.ARROW_DOWN
                 elif resp in ['tAU']:  # Atalhos
-                    code = [chr(_c) for _c in Key.ARROW_UP.code]
+                    return Key.ARROW_UP
                 elif resp in ['tAL']:  # Atalhos
-                    code = [chr(_c) for _c in Key.ARROW_LEFT.code]
+                    return Key.ARROW_LEFT
                 elif resp in ['tAR']:  # Atalhos
-                    code = [chr(_c) for _c in Key.ARROW_RIGHT.code]
+                    return Key.ARROW_RIGHT
                 elif resp in ['tE']:  # Atalhos
-                    code = [chr(_c) for _c in Key.ENTER.code]
+                    return Key.ENTER
                 elif resp in ['tES']:  # Atalhos
-                    code = [chr(_c) for _c in Key.ESC.code]
+                    return Key.ESC
                 else:
                     for t in Key:
                         if t.name == resp[1:]:

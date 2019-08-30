@@ -248,19 +248,27 @@ def get_gitlab_project_id(project_name):
         for p in content:
             if p['name'] == project_name:
                 return p['id']
-        exit('Project "%s" not found in GitLab' % project_name)
+        print('Project "%s" not found in GitLab' % project_name)
+        return None
     if content:
         return content['id']
 
 
-def select_option(default_packages, options_all_and_none=True):
+def select_option(default_packages, message=None, multiple_select=False, options_all_and_none=True, default='all'):
+    if message is not None:
+        print(message)
+    if not multiple_select:
+        options_all_and_none = False
     if options_all_and_none and len(default_packages) > 1:
         options = ['all'] + default_packages + ['none']
-        current = ''
     else:
         options = default_packages
-        current = default_packages[0]
-    selected = set(options) - {'none'}
+
+    current = options[0]
+    if default == 'all':
+        selected = set(options) - {'none'}
+    else:
+        selected = {default}
     reset_printed_lines()
     hide_cursor()
     while True:
@@ -282,6 +290,8 @@ def select_option(default_packages, options_all_and_none=True):
             if not current:
                 current = options[-1]
             current = options[(options.index(current) + 1) % len(options)]
+        elif resp == Key.ESC:
+            exit(1)
         elif resp == '+':
             selected.add(current)
         elif resp == '-':

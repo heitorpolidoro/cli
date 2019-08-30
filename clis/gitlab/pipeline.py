@@ -1,8 +1,8 @@
 import time
 
 from clis.gitlab.job import Job
+from helpers.command import Command, CommandArgument
 from helpers.loading import Loading
-from parser import Command, CommandArgument
 from helpers.utils import *
 from helpers.colors import *
 

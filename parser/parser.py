@@ -1,11 +1,9 @@
 import inspect
 import json
-import os
-import sys
 from argparse import ArgumentParser
 
 from helpers.loading import Loading
-from parser.command import Command
+from helpers.command import Command
 from helpers.utils import *
 
 __version__ = '0.0.1-beta'
@@ -15,7 +13,7 @@ if sys.version_info[0] < 3:
     raise Exception('Must be using Python 3')
 
 ENV_FILE = os.path.expanduser('~/.cli/%s.env' % os.getcwd().replace('/', '-'))
-CONFIG_FILE = os.path.expanduser('~/.cli/config')
+CONFIG_FILE = os.path.expanduser('~/.cli/config-beta')
 
 
 class Parser(ArgumentParser):
@@ -107,25 +105,25 @@ class Parser(ArgumentParser):
         return resp
 
     @staticmethod
-    def load_local_environment_variables(file=ENV_FILE):
+    def load_local_environment_variables(file_name=ENV_FILE):
         # Load local environment variables
-        if os.path.exists(file):
-            with open(file, 'r', newline='') as arq:
-                for line in arq.readlines():
+        if os.path.exists(file_name):
+            with open(file_name, 'r', newline='') as file:
+                for line in file.readlines():
                     name, value = line.split('=')
                     os.environ[name] = value.strip()
 
     @staticmethod
-    def set_local_variable(local_variable, file=ENV_FILE, verbose=True, exit_on_complete=True):
-        file = os.path.expanduser(file)
+    def set_local_variable(local_variable, file_name=ENV_FILE, verbose=True, exit_on_complete=True):
+        file_name = os.path.expanduser(file_name)
         if local_variable:
             if '=' not in local_variable or local_variable.endswith('='):
                 raise SyntaxError('--set-local-variable must be in the format NAME=VALUE')
 
             name, value = local_variable.split('=')
-            if os.path.exists(file):
-                with open(file, 'r', newline='') as arq:
-                    file_lines = arq.readlines()
+            if os.path.exists(file_name):
+                with open(file_name, 'r', newline='') as file:
+                    file_lines = file.readlines()
             else:
                 file_lines = []
 
@@ -136,8 +134,8 @@ class Parser(ArgumentParser):
 
             file_lines.append(name + '=' + value)
 
-            with open(file, 'w', newline='') as arq:
-                arq.writelines(sorted(file_lines))
+            with open(file_name, 'w', newline='') as file:
+                file.writelines(sorted(file_lines))
 
             if verbose:
                 print('The local variable "%s" setted to the value "%s"' % (name, value))
@@ -159,7 +157,7 @@ class Parser(ArgumentParser):
         if package not in installed_packages:
             installed_packages.append(package)
         Parser.set_local_variable('INSTALLED_PACKAGES=%s' % json.dumps(installed_packages),
-                                  file=CONFIG_FILE, verbose=False, exit_on_complete=False)
+                                  file_name=CONFIG_FILE, verbose=False, exit_on_complete=False)
 
         Loading.stop()
         alias_created = []
@@ -170,27 +168,27 @@ class Parser(ArgumentParser):
             resp = getch()
             if resp in ['\n', 'y', 'Y']:
                 if os.path.exists(os.path.expanduser('~/.bash_aliases')):
-                    file = '~/.bash_aliases'
+                    file_name = '~/.bash_aliases'
                 else:
-                    file = '~/.bashrc'
+                    file_name = '~/.bashrc'
 
                 create_alias = True
-                with open(os.path.expanduser(file), 'r') as arq:
-                    for line in arq.readlines():
+                with open(os.path.expanduser(file_name), 'r') as file:
+                    for line in file.readlines():
                         if alias in line:
                             create_alias = False
                             break
                 if create_alias:
                     output = run_and_return_output('which %s' % cli_name, exit_if_error=False)
                     if output:
-                        print('Cannot create the alias becouse there is a command "%s" in %s' % (cli_name, output))
+                        print('Cannot create the alias because there is a command "%s" in %s' % (cli_name, output))
                     else:
-                        with open(os.path.expanduser(file), 'a') as arq:
-                            arq.write('\n' + alias)
+                        with open(os.path.expanduser(file_name), 'a') as file:
+                            file.write('\n' + alias)
 
                         alias_created.append(alias)
                 else:
-                    print('already exists a alias named "pipeline" in %s.' % file)
+                    print('already exists a alias named "pipeline" in %s.' % file_name)
 
         if verbose:
             return_printed_lines()
@@ -215,13 +213,13 @@ class Parser(ArgumentParser):
 
         installed_packages.remove(package)
         Parser.set_local_variable('INSTALLED_PACKAGES=%s' % json.dumps(installed_packages),
-                                  file=CONFIG_FILE, verbose=False, exit_on_complete=False)
+                                  file_name=CONFIG_FILE, verbose=False, exit_on_complete=False)
         try:
             Parser.update(verbose=False, exit_on_complete=False)
         except Exception:
             installed_packages.append(package)
             Parser.set_local_variable('INSTALLED_PACKAGES=%s' % json.dumps(installed_packages),
-                                      file=CONFIG_FILE, verbose=False, exit_on_complete=False)
+                                      file_name=CONFIG_FILE, verbose=False, exit_on_complete=False)
             raise
 
         return_printed_lines()
@@ -272,11 +270,36 @@ class Parser(ArgumentParser):
     @staticmethod
     def install_all_default_packages(package='all'):
         default_packages = [p for p in ['gitlab'] if package == 'all' or p == package]
-        print('These are the default packages, which one you want to install')
-        packages = select_option(default_packages)
+        packages = select_option(
+            default_packages,
+            multiple_select=True,
+            message='These are the default packages, which one you want to install'
+        )
         for p in packages:
             Parser.install(p, _print_source_bashrc_info=False)
         exit()
+
+    @staticmethod
+    def new_cli(package):
+        package_lower = package.lower()
+        package_capitalized = package.capitalize()
+        os.mkdir(package_lower)
+        os.chdir(package_lower)
+        with open('__init__.py', 'w') as file:
+            file.write('from %s.%s import %s\n' % (package_lower, package_lower, package_capitalized))
+
+        content = [
+            'from helpers.command import Command, CommandArgument',
+            'from helpers.loading import Loading',
+            'from helpers.utils import *',
+            'from helpers.colors import *',
+            '',
+            '',
+            'class %s(object):' % package_capitalized,
+            '  '
+        ]
+        with open('%s.py' % package_lower, 'w') as file:
+            file.writelines(content)
 
 
 Parser.load_local_environment_variables(CONFIG_FILE)
