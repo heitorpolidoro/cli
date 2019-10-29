@@ -1,0 +1,13 @@
+#!/bin/bash
+action=${0#.*-}
+
+protected_branchs="next-release master homolog"
+
+current_branch=$(git symbolic-ref HEAD | sed -e 's,.*/\(.*\),\1,')
+
+for protected_branch in $protected_branchs; do
+    if [ "$protected_branch" = "$current_branch" ]; then
+        echo "Do not ${action} in the branch $current_branch"
+        exit 1
+    fi
+done
