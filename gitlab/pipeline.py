@@ -1,10 +1,13 @@
 import time
 
-from clis.gitlab.job import Job
-from helpers.command import Command, CommandArgument
-from helpers.loading import Loading
-from helpers.utils import *
-from helpers.colors import *
+from gitlab.gitlab import Gitlab
+from gitlab.job import Job
+from parser import Parser
+from parser.parser import CONFIG_FILE
+from pyutils.command import Command, CommandArgument
+from pyutils.loading import Loading
+from pyutils.pyutils import *
+from colors.colors import *
 
 
 # TODO
@@ -16,31 +19,48 @@ class Pipeline(object):
     help = 'GitLab pipeline commands'
     version = '0.0.1-beta'
 
-    def __init__(self, id=None, branch=None, **kwargs):
-        self.id = id
-        self.web_url = None
-        self.status = None
+    def __init__(self, id=None, branch=None, **_):
+        self._status = None
+        self._jobs = None
+        self._gitlab_pipeline = None
         self.branch = branch
-        self.jobs = []
         if id is None:
             if branch is None:
                 self.branch = run_and_return_output('git rev-parse --abbrev-ref HEAD')
 
             last_commit_id = run_and_return_output('git log --pretty=%%H -1 %s' % self.branch)
-            content = Requests.get_content(
-                'https://gitlab.com/api/v4/projects/${GITLAB_PROJECT}/pipelines/?sha=' + last_commit_id,
-                headers={'PRIVATE-TOKEN': '${PRIVATE_TOKEN}'}
-            )
+            resp = Gitlab.projects.get(get_env_var('GITLAB_PROJECT_ID')).pipelines.list(sha=last_commit_id)
+            if resp:
+                self._gitlab_pipeline = resp[0]
         else:
-            content = Requests.get_content(
-                'https://gitlab.com/api/v4/projects/${GITLAB_PROJECT}/pipelines/${pipeline_id}',
-                headers={'PRIVATE-TOKEN': '${PRIVATE_TOKEN}'},
-                pipeline_id=id
-            )
-        if content:
-            if isinstance(content, list):
-                content = content[0]
-            vars(self).update(content)
+            self._gitlab_pipeline = Gitlab.projects.get(get_env_var('GITLAB_PROJECT_ID')).pipelines.get(id)
+
+    def __getattr__(self, item):
+        if self._gitlab_pipeline is not None:
+            return getattr(self._gitlab_pipeline, item)
+        return None
+
+    @property
+    def jobs(self):
+        if self._jobs is None:
+            self._jobs = [Job(gitlab_job=j) for j in self._gitlab_pipeline.jobs.list()]
+
+        return self._jobs
+
+    @jobs.setter
+    def jobs(self, value):
+        self._jobs = value
+
+    @property
+    def status(self):
+        if self._status is None:
+            self._status = self._gitlab_pipeline.status
+
+        return self._status
+
+    @status.setter
+    def status(self, value):
+        self._status = value
 
     @staticmethod
     def validate_env_vars():
@@ -51,42 +71,42 @@ class Pipeline(object):
         validate_env_var('PIPELINE_TRIGGER_TOKEN',
                          message='The value is in Last Pass in%s Gitlab QB CLI tokens%s notes.' % (Bold, Color_Off))
 
-        validate_env_var(
-            'GITLAB_PROJECT',
-            default=lambda: get_gitlab_project_id(
-                run_and_return_output('git config --get remote.origin.url').split('/')[1].replace('.git', '')
-            ),
-            message='The value is the GitLab project ID.'
-        )
+        project_id_key = os.getcwd() + '_PROJECT_ID'
+        project_id = get_env_var(project_id_key, '')
+        if not project_id:
+            project = Gitlab.get_project()
+            project_id = project.id
+            Parser.set_local_variable(project_id_key, project_id, file_name=CONFIG_FILE, exit_on_complete=False)
+
+        os.environ['GITLAB_PROJECT_ID'] = str(project_id)
+
+        # trigger_id_key = os.getcwd() + '_TRIGGER_ID'
+        # trigger_id = get_env_var(trigger_id_key, '')
+        # if not trigger_id:
+        #     project = Gitlab.get_project()
+        #     for t in project.triggers.list():
+        #         if t.token == get_env_var('PIPELINE_TRIGGER_TOKEN'):
+        #             Parser.set_local_variable(trigger_id_key, t.id, file_name=CONFIG_FILE, exit_on_complete=False)
+
+        os.environ['TRIGGER_ID'] = str(project_id)
 
     def update(self):
-        content = Requests.get_content(
-            'https://gitlab.com/api/v4/projects/${GITLAB_PROJECT}/pipelines/${pipeline_id}',
-            headers={'PRIVATE-TOKEN': '${PRIVATE_TOKEN}'},
-            pipeline_id=self.id
-        )
-        if content:
-            vars(self).update(content)
-
+        self.__init__(self.id)
         self.update_jobs()
 
     def update_jobs(self):
-        jobs = Requests.get_content(
-            'https://gitlab.com/api/v4/projects/${GITLAB_PROJECT}/pipelines/${pipeline_id}/jobs',
-            headers={'PRIVATE-TOKEN': '${PRIVATE_TOKEN}'}, pipeline_id=self.id, clazz=Job)
-
+        self._jobs = None
+        jobs = self.jobs
         grouped_jobs = {}
-        if not isinstance(jobs, list):
-            jobs = [jobs]
         bigger_name = max(jobs, key=lambda j: len(j.name))
         pipeline_running = False
         pipeline_pending = False
         while jobs:
             job = jobs.pop(0)
             job.name = '{0:{size}}'.format(job.name, size=len(bigger_name.name))
-            if job.status == 'running':
+            if job.running:
                 pipeline_running = True
-            elif job.status == 'pending':
+            elif job.pending:
                 pipeline_pending = True
 
             if job.name in grouped_jobs:
@@ -101,7 +121,6 @@ class Pipeline(object):
         if not pipeline_running and pipeline_pending:
             self.status = 'pending'
         self.jobs = list(grouped_jobs.values())
-        return self.jobs
 
     '''------------- PRINTS -------------'''
 
@@ -121,13 +140,9 @@ class Pipeline(object):
         print(*color, status)
 
     def print_jobs(self):
-        if not self.jobs:
-            self.update_jobs()
-        # color = ''
-        # separator = '-' * (int(run_and_return_output('tput cols')) - 1)
         separator = '-' * 20
         print_separator = True
-        for job in sorted(self.jobs):
+        for job in self.jobs:
             if job.retry_job:
                 if not print_separator:
                     print(separator)
@@ -137,12 +152,10 @@ class Pipeline(object):
 
             while job:
                 job.print_info()
-                # job.print_info(fixed_color=color)
                 job = job.retry_job
 
             if print_separator:
                 print(separator)
-            # color = Dim if not color else ''
 
     '''------------- COMMANDS -------------'''
 
@@ -168,21 +181,15 @@ class Pipeline(object):
             pipeline.print_jobs()
         else:
             print(Bold, 'Checking if the commit is mirrored')
+            github_commit_id = gitlab_commit_id = None
 
             reset_printed_lines()
-            local_commit_id = get_last_local_commit(pipeline.branch)
-            print('Local:\t%s' % local_commit_id)
-
-            github_commit_id = get_last_github_commit(pipeline.branch)
-            color, symbol = (Green, check_mark) if local_commit_id == github_commit_id else (Red, cross_mark)
-            print(color, 'GitHub:\t%s\t%s' % (github_commit_id, symbol))
-
-            gitlab_commit_id = get_last_gitlab_commit(pipeline.branch)
-            color, symbol = (Green, check_mark) if local_commit_id == gitlab_commit_id else (Red, cross_mark)
-            print(color, 'GitLab:\t%s\t%s' % (github_commit_id, symbol))
+            local_commit_id = get_last_local_commit(pipeline.ref)
             while gitlab_commit_id is None \
                     or local_commit_id != gitlab_commit_id \
                     or github_commit_id != gitlab_commit_id:
+                github_commit_id = get_last_github_commit(pipeline.ref)
+                gitlab_commit_id = Gitlab.get_last_commit(pipeline.ref)
                 return_printed_lines()
                 print('Waiting to mirror the commit')
 
@@ -192,22 +199,22 @@ class Pipeline(object):
                 print(color, 'GitHub:\t%s\t%s' % (github_commit_id, symbol))
 
                 color, symbol = (Green, check_mark) if local_commit_id == gitlab_commit_id else (Red, cross_mark)
-                print(color, 'GitLab:\t%s\t%s' % (github_commit_id, symbol))
+                print(color, 'GitLab:\t%s\t%s' % (gitlab_commit_id, symbol))
 
                 time.sleep(0.05)
-                github_commit_id = get_last_github_commit(pipeline.branch)
-                gitlab_commit_id = get_last_gitlab_commit(pipeline.branch)
 
             reset_printed_lines()
             time.sleep(5)  # Wait to auto-triggered pipeline to run
             pipeline = Pipeline(branch=arguments.branch)  # Check if auto-triggered pipeline
             if not pipeline.id or arguments.force:
                 print('Starting pipeline for branch %s' % pipeline.branch)
-                Requests.post('https://gitlab.com/api/v4/projects/${GITLAB_PROJECT}/trigger/pipeline',
-                              files={'token': (None, '${PIPELINE_TRIGGER_TOKEN}'), 'ref': (None, pipeline.branch)})
+                Gitlab.get_project().trigger_pipeline(pipeline.branch, get_env_var('PIPELINE_TRIGGER_TOKEN'))
+                # Requests.post('https://gitlab.com/api/v4/projects/${GITLAB_PROJECT_ID}/trigger/pipeline',
+                #               files={'token': (None, '${PIPELINE_TRIGGER_TOKEN}'), 'ref': (None, pipeline.ref)})
                 time.sleep(5)  # Wait to triggered pipelines to run
                 pipeline = Pipeline(branch=arguments.branch)  # Update pipeline information
-            notify('Pipeline %s' % pipeline.branch, 'Started')
+            if not arguments.monitor:
+                notify('Pipeline %s' % pipeline.branch, 'Started')
 
         if arguments.monitor:
             return_printed_lines()
@@ -233,14 +240,14 @@ class Pipeline(object):
                 pipeline = Pipeline(id=arguments.pipeline)
 
         if pipeline.id is None:
-            exit('There is no Pipeline for this commit in the branch: %s' % pipeline.branch)
+            exit('There is no Pipeline for this commit in the branch: %s' % pipeline.ref)
 
         print(Bold, 'Starting monitor')
         print(Cyan, pipeline.web_url)
         reset_printed_lines()
 
         if pipeline.status in ['running', 'pending']:
-            notify('Monitor pipeline %s' % pipeline.branch, 'Started')
+            notify('Monitor pipeline %s' % pipeline.ref, 'Started')
 
         pipeline.update()
         Loading.stop()
@@ -249,7 +256,7 @@ class Pipeline(object):
             pipeline.print_status()
             pipeline.print_jobs()
 
-            time.sleep(0.05)
+            time.sleep(0.5)
 
             pipeline.update()
             return_printed_lines(clear=False)
@@ -257,4 +264,4 @@ class Pipeline(object):
 
         pipeline.print_status()
         pipeline.print_jobs()
-        notify('Pipeline %s Finished' % pipeline.branch, pipeline.status)
+        notify('Pipeline %s Finished' % pipeline.ref, pipeline.status)

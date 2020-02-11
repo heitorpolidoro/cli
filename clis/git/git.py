@@ -1,0 +1,2 @@
+class Git(object):
+    pass

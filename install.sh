@@ -20,20 +20,18 @@ if [[ -z "$(which python3.7)" ]]; then
   fi
 fi
 
-if ! ${python_cmd} -m pip freeze | grep -q requests= ; then
-  ${python_cmd} -m pip install requests python-gitlab || exit 1
-fi
+${python_cmd} -m pip install -r requirements.txt --user || exit 1
 
-echo -e '\nQual nome deseja para o CLI':
-read -r NAME
-
+#echo -e '\nQual nome deseja para o CLI':
+#read -r NAME
+NAME=cli
 if [[ -z "${NAME}" ]]; then
   echo "O nome é obrigatório"
   exit 1
 fi
 
 echo "#!/usr/bin/env bash" > "${NAME}"
-echo "${python_cmd} ${PWD}/cli.py \$*"  >> "${NAME}"
+echo "${python_cmd} ${PWD}/cli.py \"\$@\""  >> "${NAME}"
 chmod +x "${NAME}"
 
 if ! grep -q "${PWD}" ~/.bashrc; then
@@ -42,9 +40,9 @@ fi
 
 mkdir ~/.cli
 
-echo "CLI_NAME=${NAME}" > ~/.cli/config
-echo "CLI_PATH=${PWD}" >> ~/.cli/config
+#echo "CLI_NAME=${NAME}" > ~/.cli/config
+echo "CLI_PATH=${PWD}" > ~/.cli/config
 
-${python_cmd} "${PWD}"/cli.py --install_all_default_packages
+#${python_cmd} "${PWD}"/cli.py --install_all_default_packages
 
 echo -e '\nRun "source ~/.bashrc" to update the PATH'

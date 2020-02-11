@@ -2,9 +2,9 @@ import inspect
 import json
 from argparse import ArgumentParser
 
-from helpers.loading import Loading
-from helpers.command import Command
-from helpers.utils import *
+from pyutils.loading import Loading
+from pyutils.command import Command
+from pyutils.pyutils import *
 
 __version__ = '0.0.1-beta'
 
@@ -62,7 +62,7 @@ class Parser(ArgumentParser):
 
                 subparser = subparsers.add_parser(clazz_name.lower(), help=getattr(clazz, 'help', None),
                                                   version=getattr(clazz, 'version', None))
-                # Add a subparser recursively for each function decorated with @Commad
+                # Add a subparser recursively for each function decorated with @Command
                 for command in command_functions:
                     # noinspection PyTypeChecker
                     subparser.add_argument(command)
@@ -114,13 +114,15 @@ class Parser(ArgumentParser):
                     os.environ[name] = value.strip()
 
     @staticmethod
-    def set_local_variable(local_variable, file_name=ENV_FILE, verbose=True, exit_on_complete=True):
+    def set_local_variable(local_variable, local_variable_value=None, file_name=ENV_FILE, verbose=True, exit_on_complete=True):
         file_name = os.path.expanduser(file_name)
         if local_variable:
-            if '=' not in local_variable or local_variable.endswith('='):
-                raise SyntaxError('--set-local-variable must be in the format NAME=VALUE')
+            if local_variable_value is None:
+                if '=' not in local_variable or local_variable.endswith('='):
+                    raise SyntaxError('--set-local-variable must be in the format NAME=VALUE')
+                local_variable, local_variable_value = local_variable.split('=')
 
-            name, value = local_variable.split('=')
+            local_variable_value = str(local_variable_value)
             if os.path.exists(file_name):
                 with open(file_name, 'r', newline='') as file:
                     file_lines = file.readlines()
@@ -128,18 +130,18 @@ class Parser(ArgumentParser):
                 file_lines = []
 
             for line in file_lines:
-                if line.startswith(name + '='):
+                if line.startswith(local_variable + '='):
                     file_lines.remove(line)
                     break
 
-            file_lines.append(name + '=' + value)
+            file_lines.append(local_variable + '=' + local_variable_value + '\n')
 
             with open(file_name, 'w', newline='') as file:
                 file.writelines(sorted(file_lines))
 
             if verbose:
-                print('The local variable "%s" setted to the value "%s"' % (name, value))
-        os.environ[name] = value
+                print('The local variable "%s" setted to the value "%s"' % (local_variable, local_variable_value))
+            os.environ[local_variable] = local_variable_value
         if exit_on_complete:
             exit()
 
@@ -289,10 +291,10 @@ class Parser(ArgumentParser):
             file.write('from %s.%s import %s\n' % (package_lower, package_lower, package_capitalized))
 
         content = [
-            'from helpers.command import Command, CommandArgument',
-            'from helpers.loading import Loading',
-            'from helpers.utils import *',
-            'from helpers.colors import *',
+            'from pyutils.command import Command, CommandArgument',
+            'from pyutils.loading import Loading',
+            'from pyutils.pyutils import *',
+            'from colors.colors import *',
             '',
             '',
             'class %s(object):' % package_capitalized,
