@@ -1,6 +1,4 @@
 # Custom CLI
-To install clone this repository in anywhere you want. Use the `stable` branch.
+To install
 
-Run `./install.sh`
-
-Use `cli --help` for more information
+`pip install polidoro_cli`
