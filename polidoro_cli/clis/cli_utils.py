@@ -1,9 +1,10 @@
 import os
 
-ENV_FILE = os.path.expanduser('~/.cli/%s.env' % os.getcwd().replace('/', '-'))
+CONFIG_FILE = os.path.expanduser('~/.cli/config')
+LOCAL_ENV_FILE = os.path.expanduser('~/.cli/%s.env' % os.getcwd().replace('/', '-'))
 
 
-def load_environment_variables(file_name=ENV_FILE):
+def load_environment_variables(file_name):
     # Load local environment variables
     if os.path.exists(file_name):
         with open(file_name, 'r', newline='') as file:
@@ -12,7 +13,7 @@ def load_environment_variables(file_name=ENV_FILE):
                 os.environ[name] = value.strip()
 
 
-def set_environment_variables(local_variable, local_variable_value=None, file_name=ENV_FILE, verbose=True,
+def set_environment_variables(local_variable, local_variable_value=None, file_name=LOCAL_ENV_FILE, verbose=True,
                               exit_on_complete=True):
     file_name = os.path.expanduser(file_name)
     if local_variable:
@@ -43,3 +44,5 @@ def set_environment_variables(local_variable, local_variable_value=None, file_na
         os.environ[local_variable] = local_variable_value
     if exit_on_complete:
         exit()
+
+    return local_variable_value

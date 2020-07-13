@@ -1,7 +1,7 @@
 import time
 
-from gitlab.gitlab import Gitlab
-from gitlab.job import Job
+from wip_clis.gitlab import Gitlab
+from wip_clis.gitlab.job import Job
 from parser import Parser
 from parser.parser import CONFIG_FILE
 from pyutils.command import Command, CommandArgument
@@ -66,10 +66,10 @@ class Pipeline(object):
     def validate_env_vars():
         # Assuming that the project has the same name in GitHub and GitLab
         validate_env_var('PRIVATE_TOKEN',
-                         message='The value is in Last Pass in%s Gitlab QB CLI tokens%s notes.' % (Bold, Color_Off))
+                         message='The value is in Last Pass in%s Gitlab UDC CLI tokens%s notes.' % (Bold, Color_Off))
 
         validate_env_var('PIPELINE_TRIGGER_TOKEN',
-                         message='The value is in Last Pass in%s Gitlab QB CLI tokens%s notes.' % (Bold, Color_Off))
+                         message='The value is in Last Pass in%s Gitlab UDC CLI tokens%s notes.' % (Bold, Color_Off))
 
         project_id_key = os.getcwd() + '_PROJECT_ID'
         project_id = get_env_var(project_id_key, '')

@@ -1,0 +1,5 @@
+#!/usr/bin/env python
+
+import polidoro_cli, os
+os.environ['CLI_PATH'] = polidoro_cli.__path__[0]
+polidoro_cli.main()

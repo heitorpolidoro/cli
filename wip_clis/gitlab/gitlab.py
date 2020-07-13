@@ -1,4 +1,4 @@
-import gitlab
+from wip_clis import gitlab
 from pyutils import *
 
 

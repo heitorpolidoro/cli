@@ -1,7 +1,7 @@
 import os
 
-from argument import Command
-from clis.cli import CLI
+from polidoro_argument import Command
+from polidoro_cli.clis.cli import CLI
 
 
 class Docker(CLI):
@@ -41,4 +41,24 @@ class Docker(CLI):
     def up(*args):
         CLI.execute('docker-compose up %s' % ' '.join(args))
 
+    @staticmethod
+    @Command(
+        help='Run "docker-compose down"'
+    )
+    def down(*args):
+        CLI.execute('docker-compose down %s' % ' '.join(args))
+
+    @staticmethod
+    @Command(
+        help='Run "docker stop"'
+    )
+    def stop(*args):
+        CLI.execute('docker stop %s %s' % (Docker.get_container_name(), ' '.join(args)))
+
+    @staticmethod
+    @Command(
+        help='Run "docker logs'
+    )
+    def logs(*args):
+        CLI.execute('docker logs %s %s' % (Docker.get_container_name(), ' '.join(args)))
 

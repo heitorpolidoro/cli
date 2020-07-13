@@ -1,4 +1,4 @@
-from gitlab.gitlab import Gitlab
+from wip_clis.gitlab import Gitlab
 from colors.colors import *
 from pyutils.pyutils import *
 

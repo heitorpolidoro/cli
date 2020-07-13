@@ -1,8 +1,4 @@
-import os
-
-from argument import Command
-from clis.cli import CLI
-from clis.docker.docker import Docker
+from polidoro_cli.clis.cli import CLI
 
 
 class Elixir(CLI):

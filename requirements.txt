@@ -1,1 +1,1 @@
-polidoro-py-argument==1.3.0
+polidoro-py-argument==2.*

@@ -1,9 +1,15 @@
+"""
+Module doc sctring
+"""
 import os
 
-from argument import Command
+from polidoro_argument import Command
 
 
-class CLI(object):
+class CLI:
+    """
+    Parent class for CLI classes
+    """
 
     def __init__(self, commands={}, aliases={}, helpers={}, command_help={}):
         for name, cmd in commands.items():
@@ -22,23 +28,17 @@ class CLI(object):
     @classmethod
     def wrapper(cls, name, cmd, **kwargs):
         raise NotImplemented
-    # @classmethod
-    # def wrapper(cls, name, cmd, **kwargs):
-    #     def wrapper_(*args, **_kwargs):
-    #         kwargs.update(_kwargs)
-    #         cls.execute(cmd, *args, **kwargs)
-    #
-    #     setattr(wrapper_, '__name__', name)
-    #     return wrapper_
-    #
+
     @classmethod
-    def execute(cls, command, *args, docker=False, environment_vars={}):
+    def execute(cls, command, *args, docker=False, environment_vars={}, dir=None):
         command = ' '.join([command] + list(args))
         if docker:
-            from clis.docker.docker import Docker
+            from polidoro_cli.clis.docker.docker import Docker
             Docker.exec(command, environment_vars=environment_vars)
         else:
             if environment_vars:
                 command = ' '.join(['%s=%s' % (name, value) for name, value in environment_vars.items()] + [command])
             print('+ %s' % command)
+            if dir:
+                os.chdir(dir)
             os.system(command)
