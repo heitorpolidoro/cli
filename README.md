@@ -1,4 +1,11 @@
 # Custom CLI
-To install
+### To install
 
 `pip install polidoro_cli`
+
+### To use:
+`cli --help`
+
+### Tips:
+Create alias:
+`alias dk='cli docker'`
