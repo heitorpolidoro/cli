@@ -8,4 +8,9 @@
 
 ### Tips:
 Create alias:
+
 `alias dk='cli docker'`
+
+Then
+
+`dk exec bash`
