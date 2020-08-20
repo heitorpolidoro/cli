@@ -46,7 +46,7 @@ class UnifiedDockerCompose(CLI):
         if not udc_dir:
             udc_dir = set_environment_variables(
                 'UNIFIED_DOCKER_COMPOSE_DIR',
-                input('UnifiedDockerCompose dir: '),
+                input('Unified Docker Compose dir: '),
                 file_name=CONFIG_FILE,
                 exit_on_complete=False)
         return udc_dir

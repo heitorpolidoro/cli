@@ -29,7 +29,7 @@ class CLI:
             Command(
                 aliases=aliases,
                 helpers=helpers,
-                help=command_help.get(name, 'run "%s"' % kwargs['cmd']),
+                help=command_help.get(name, 'Run "%s"' % kwargs['cmd']),
                 method_name=name
             )(self.__class__.wrapper(name, **kwargs))
 

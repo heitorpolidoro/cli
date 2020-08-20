@@ -14,7 +14,7 @@ from polidoro_cli.clis.cli_utils import load_environment_variables, CONFIG_FILE,
 load_environment_variables(CONFIG_FILE)
 load_environment_variables(LOCAL_ENV_FILE)
 
-VERSION = '0.2.1'
+VERSION = '0.2.2'
 
 
 def load_clis():

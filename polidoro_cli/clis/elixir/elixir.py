@@ -27,12 +27,12 @@ class Elixir(CLI):
             },
             aliases={'docker': 'd'},
             helpers={'docker': 'if is to run in the docker container'},
-            command_help={'test': 'run "MIX_ENV=test mix test"'},
+            command_help={'test': 'Run "MIX_ENV=test mix test"'},
         )
 
     @classmethod
     def wrapper(cls, name, cmd, **kwargs):
-        def wrapper_(*args, docker=True, **_kwargs):
+        def wrapper_(*args, docker=False, **_kwargs):
             kwargs.update(_kwargs)
             Elixir.execute(cmd, *args, docker=docker, **kwargs)
 
