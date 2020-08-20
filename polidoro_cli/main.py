@@ -5,7 +5,11 @@ import os
 
 from polidoro_argument import ArgumentParser
 
-from polidoro_cli.clis.cli_utils import load_environment_variables, CONFIG_FILE, LOCAL_ENV_FILE
+if __name__ == '__main__':
+    import sys
+    sys.path.append("/mnt/c/Users/heito/IdeaProjects/cli/")
+
+from polidoro_cli.clis.cli_utils import load_environment_variables, CONFIG_FILE, LOCAL_ENV_FILE, change_to_clis_dir
 
 load_environment_variables(CONFIG_FILE)
 load_environment_variables(LOCAL_ENV_FILE)
@@ -17,20 +21,15 @@ def load_clis():
     cur_dir = os.getcwd()
     change_to_clis_dir()
     for d in os.listdir():
-        change_to_clis_dir()
         if os.path.isdir(d) and not d.startswith('__'):
             try:
                 os.chdir(d)
                 for file in glob.glob('*.py'):
-                    # print(d, '/', file)
                     __import__('polidoro_cli.clis.%s.%s' % (d, file.replace('.py', '')))
             except SystemExit as e:
                 print(e)
+        change_to_clis_dir()
     os.chdir(cur_dir)
-
-
-def change_to_clis_dir(cli=''):
-    os.chdir(os.path.join(os.getenv('CLI_PATH'), 'clis', cli))
 
 
 def main():

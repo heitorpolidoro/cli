@@ -1,0 +1,14 @@
+services:
+  $project_dir:
+    build:
+      context: .
+    command: bash -c "while true; do sleep 60; done"
+    container_name: $project_dir
+    ports:
+    - 4000:4000
+    volumes:
+    - .:/$project_dir
+    - $project_dir_root:/root
+version: '3'
+volumes:
+  $project_dir_root: null

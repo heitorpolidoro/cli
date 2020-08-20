@@ -14,7 +14,7 @@ class UnifiedDockerCompose(CLI):
         help='Run "docker-compose up"'
     )
     def up(*args):
-        compose_args, other_args = UnifiedDockerCompose._split_args(args)
+        compose_args, other_args = Docker.split_args(args)
         udc_dir = UnifiedDockerCompose._get_udc_dir()
         CLI.execute('docker-compose up %s %s %s' % (compose_args, Docker.get_container_name(), other_args),
                     dir=udc_dir)
@@ -24,7 +24,7 @@ class UnifiedDockerCompose(CLI):
         help='Run "docker-compose down"'
     )
     def down(*args):
-        compose_args, other_args = UnifiedDockerCompose._split_args(args)
+        compose_args, other_args = Docker.split_args(args)
         udc_dir = UnifiedDockerCompose._get_udc_dir()
         CLI.execute('docker-compose down %s %s' % (compose_args, other_args),
                     dir=udc_dir)
@@ -36,12 +36,6 @@ class UnifiedDockerCompose(CLI):
     def restart(*args):
         Docker.stop()
         UnifiedDockerCompose.up(*args)
-
-    @staticmethod
-    def _split_args(args):
-        compose_args = ' '.join(filter(lambda a: a.startswith('-'), args))
-        other_args = ' '.join(filter(lambda a: not a.startswith('-'), args))
-        return compose_args, other_args
 
     @staticmethod
     def _get_udc_dir():
