@@ -3,7 +3,7 @@ from string import Template
 
 from polidoro_argument import Command
 
-from clis.cli_utils import get_clis_dir, write_docker_compose, replace_in_file
+from polidoro_cli.clis.cli_utils import get_clis_dir, write_docker_compose, replace_in_file
 from polidoro_cli.clis.cli import CLI
 
 
