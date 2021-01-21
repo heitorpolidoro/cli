@@ -5,6 +5,9 @@ import yaml
 CONFIG_FILE = os.path.expanduser('~/.cli/config')
 LOCAL_ENV_FILE = os.path.expanduser('~/.cli/%s.env' % os.getcwd().replace('/', '-'))
 
+if not os.path.exists(os.path.expanduser('~/.cli')):
+    os.mkdir(os.path.expanduser('~/.cli'))
+
 
 def load_environment_variables(file_name):
     # Load local environment variables

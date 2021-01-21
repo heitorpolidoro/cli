@@ -3,6 +3,11 @@
 
 `pip install polidoro_cli`
 
+Then add to your `.bashrc`
+```
+export PATH="$HOME/bin:$HOME/.local/bin/:$PATH"
+```
+
 ### To use:
 `cli --help`
 

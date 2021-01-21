@@ -2,6 +2,7 @@
 # bash completion
 import glob
 import os
+from subprocess import CalledProcessError
 
 from polidoro_argument import ArgumentParser
 
@@ -36,7 +37,12 @@ def main():
     # Load all the CLIs
     load_clis()
 
-    ArgumentParser(version=VERSION).parse_args()
+    try:
+        ArgumentParser(version=VERSION).parse_args()
+    except CalledProcessError as error:
+        return error.returncode
+    except KeyboardInterrupt:
+        pass
 
 
 if __name__ == '__main__':

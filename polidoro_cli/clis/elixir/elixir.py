@@ -17,6 +17,7 @@ class Elixir(CLI):
                 'credo': 'mix credo',
                 'deps': 'mix deps.get',
                 'iex': 'iex -S mix',
+                'iexup': 'iex -S mix phx.server',
                 'test': {'cmd': 'mix test', 'environment_vars': {'MIX_ENV': 'test'}},
                 'setup': 'mix ecto.setup',
                 'reset': 'mix ecto.reset',

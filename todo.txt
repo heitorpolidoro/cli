@@ -1,3 +1,2 @@
-Comandos docker
 Comandos do dev.sh
 Comandos do gitlab
