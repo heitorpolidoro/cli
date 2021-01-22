@@ -1,9 +1,8 @@
 import os
 
-import yaml
-
-CONFIG_FILE = os.path.expanduser('~/.cli/config')
-LOCAL_ENV_FILE = os.path.expanduser('~/.cli/%s.env' % os.getcwd().replace('/', '-'))
+CLI_DIR = os.path.expanduser('~/.cli')
+CONFIG_FILE = CLI_DIR + '/config'
+LOCAL_ENV_FILE = CLI_DIR + '%s.env' % os.getcwd().replace('/', '-')
 
 if not os.path.exists(os.path.expanduser('~/.cli')):
     os.mkdir(os.path.expanduser('~/.cli'))
@@ -112,6 +111,8 @@ def write_docker_compose(project_dir, services=None, volumes=None, ports=None):
             services_dict[project_dir]['depends_on'] = ['postgres']
 
     with open(file_name, 'w') as file:
+        import yaml
+
         yaml.dump({'version': '3'}, file)
         file.write('\n')
         yaml.dump({'services': services_dict}, file)
