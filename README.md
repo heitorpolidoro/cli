@@ -1,7 +1,7 @@
 # Custom CLI
 ### To install
 
-`pip install polidoro_cli`
+`pip3 install polidoro_cli`
 
 Then add to your `.bashrc`
 ```
@@ -18,7 +18,7 @@ Add in your `.bashrc`
 ```
 alias dk='cli docker'
 alias ex='cli elixir'
-alias udc='cli unifieddockercompose'
+alias rb='cli ruby'
 ```
 
 ### Commands:
@@ -33,7 +33,7 @@ logs      Run "docker logs
 ps        Run "docker ps"
 bash      Run "docker exec -it $container bash"
 ```
-This CLI will use the current directory as container name when needed
+This CLI will use the **current directory** as **container name**!
 
 Example:
 ```
@@ -65,17 +65,35 @@ Example:
 + docker exec -it my_project iex -S mix
 ```
 
-#### Unified Docker Compose `cli unifieddockercompose COMMAND` or `udc COMMAND`
+#### Ruby `cli ruby COMMAND` or `rb COMMAND`
 ```
-up        Run "docker-compose up"
-down      Run "docker-compose down"
-restart   Restart the container
+console   Run "bundle exec rails console"
+migrate   Run "bundle exec rails db:migrate"
+create    Run "bundle exec rails db:create"
 ```
-In the first run will ask for de Unified Docker Compose directory (*absolute path!*).
-The CLI will run the docker-compose command in this directory using the current directory as container name
 
-Example:
-```
-/home/workspace/my_project$ udc up
-+ docker-compose up my_project
-```
+[comment]: <> (#### Unified Docker Compose `cli unifieddockercompose COMMAND` or `udc COMMAND`)
+
+[comment]: <> (```)
+
+[comment]: <> (up        Run "docker-compose up")
+
+[comment]: <> (down      Run "docker-compose down")
+
+[comment]: <> (restart   Restart the container)
+
+[comment]: <> (```)
+
+[comment]: <> (In the first run will ask for de Unified Docker Compose directory &#40;*absolute path!*&#41;.)
+
+[comment]: <> (The CLI will run the docker-compose command in this directory using the current directory as container name)
+
+[comment]: <> (Example:)
+
+[comment]: <> (```)
+
+[comment]: <> (/home/workspace/my_project$ udc up)
+
+[comment]: <> (+ docker-compose up my_project)
+
+[comment]: <> (```)
